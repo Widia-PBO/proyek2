@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('laporan', function (Blueprint $table) {
     $table->id('id_laporan');
     $table->date('periode');
-    $table->decimal('total_iuran', 12, 2);
+    $table->decimal('total_iuran', 15, 2);
     $table->date('tanggal_cetak');
     $table->timestamps();
 });

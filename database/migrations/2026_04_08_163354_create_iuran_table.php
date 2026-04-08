@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pembayaran', function (Blueprint $table) {
-    $table->id('id_pembayaran');
-    $table->unsignedBigInteger('id_iuran'); // Foreign Key 
-    $table->date('tanggal_bayar');
-    $table->decimal('jumlah_bayar', 10, 2);
-    $table->string('metode_pembayaran');
-    $table->string('status_pembayaran');
+        Schema::create('iuran', function (Blueprint $table) {
+    $table->id('id_iuran');
+    $table->string('nama_iuran'); // Misal: Kebersihan, Keamanan
+    $table->decimal('nominal_tarif', 10, 2); 
     $table->timestamps();
 });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pembayaran');
+        Schema::dropIfExists('iuran');
     }
 };

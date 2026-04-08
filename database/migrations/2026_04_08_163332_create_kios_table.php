@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('iuran', function (Blueprint $table) {
-    $table->id('id_iuran'); // Di mapping kamu tertulis id_kios, tapi standarnya id_iuran 
+        Schema::create('kios', function (Blueprint $table) {
+    $table->id('id_kios');
     $table->string('nomor_kios');
     $table->string('lokasi');
-    $table->string('status_kios');
+    $table->string('status_kios'); // Tersedia atau Terisi
     $table->timestamps();
 });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('iuran');
+        Schema::dropIfExists('kios');
     }
 };

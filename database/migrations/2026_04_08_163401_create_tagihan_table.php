@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('tagihan', function (Blueprint $table) {
     $table->id('id_tagihan');
-    $table->unsignedBigInteger('id_pedagang'); // Foreign Key 
-    $table->unsignedBigInteger('id_iuran'); // Foreign Key 
-    $table->date('periode');
+    $table->unsignedBigInteger('id_pedagang');
+    $table->unsignedBigInteger('id_iuran');
+    $table->date('periode'); // Bulan/Tahun tagihan
     $table->decimal('jumlah_tagihan', 10, 2);
-    $table->string('status_tagihan');
+    $table->string('status_tagihan'); // Belum Bayar atau Lunas
     $table->timestamps();
 });
     }

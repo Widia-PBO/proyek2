@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('setoran', function (Blueprint $table) {
-    $table->id('id_setoran');
-    $table->unsignedBigInteger('id_petugas'); // Foreign Key 
-    $table->date('tanggal_setor');
-    $table->decimal('total_setoran', 10, 2);
+        Schema::create('pedagang', function (Blueprint $table) {
+    $table->id('id_pedagang');
+    $table->string('nama_pedagang');
+    $table->text('alamat');
+    $table->string('no_hp');
+    $table->unsignedBigInteger('id_kios'); // FK ke Kios (Satu arah)
+    $table->unsignedBigInteger('id_user'); // FK ke User untuk login pedagang
     $table->timestamps();
 });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('setoran');
+        Schema::dropIfExists('pedagang');
     }
 };
