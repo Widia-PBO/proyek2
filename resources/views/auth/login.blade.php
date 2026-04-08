@@ -14,7 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 100vh;  
             background: linear-gradient(135deg, #f0f7ff 0%, #e0edff 100%);
             position: relative; /* Penting untuk posisi logo kios */
             overflow: hidden; /* Mencegah scrollbar muncul jika logo agak keluar */

@@ -9,16 +9,28 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+public function up()
 {
     Schema::create('users', function (Blueprint $table) {
-        $table->id('id_user'); // Menggunakan id_user sesuai mapping
-        $table->string('username')->unique();
+        $table->id();
+        $table->string('name'); 
+        $table->string('username')->unique(); 
         $table->string('password');
-        $table->string('role'); // Admin, Petugas, atau Pedagang
+        $table->string('role')->default('admin'); 
+        
+        // --- TAMBAHAN UNTUK PROFIL SUPER ADMIN ---
+        $table->string('nip')->nullable();
+        $table->string('email')->unique()->nullable();
+        $table->string('whatsapp')->nullable();
+        $table->string('jabatan')->default('Super Admin');
+        $table->string('wilayah')->default('Seluruh Pasar');
+        // -----------------------------------------
+        
         $table->rememberToken();
         $table->timestamps();
     });
+
+    // ... (biarkan kode password_reset_tokens dan sessions di bawahnya apa adanya)
 }
 
     /**

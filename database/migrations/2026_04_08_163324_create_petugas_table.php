@@ -9,17 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('petugas', function (Blueprint $table) {
-    $table->id('id_petugas');
-    $table->string('nama_petugas');
-    $table->text('alamat');
-    $table->string('no_hp');
-    $table->unsignedBigInteger('id_user'); // Menunjuk ke tabel User
-    $table->timestamps();
-});
-    }
+public function up()
+{
+    Schema::create('petugas', function (Blueprint $table) {
+        $table->id();
+        $table->string('id_petugas')->unique();
+        $table->string('nama_petugas');
+        $table->string('username')->unique();
+        $table->string('password'); // <-- INI TAMBAHANNYA
+        $table->string('wilayah_tugas');
+        $table->string('kontak');
+        $table->enum('status', ['Aktif', 'Non Aktif'])->default('Aktif');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
