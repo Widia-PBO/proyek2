@@ -5,7 +5,7 @@
         <div class="hero-gradient-overlay"></div>
 
         <div class="hero-content">
-            <img src="{{ asset('assets/img/logo_pasar.png') }}" width="200" height="auto" class="hero-logo-large"
+            <img src="{{ asset( 'assets/img/logo_pasar.png') }}" width="200" height="auto" class="hero-logo-large"
                 alt="Logo Pasar Baru Indramayu">
 
             <p class="hero-welcome-text mt-0" style="margin-top: -30px !important;">

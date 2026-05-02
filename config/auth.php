@@ -42,8 +42,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-    ],
 
+        // TAMBAHKAN SATPAM PETUGAS DI SINI
+        'petugas' => [
+            'driver' => 'session',
+            'provider' => 'petugas',
+        ],
+    ],
     /*
     |--------------------------------------------------------------------------
     | User Providers
@@ -64,14 +69,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
-    ],
+        // TAMBAHKAN SUMBER DATA PETUGAS DI SINI
+        'petugas' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Petugas::class,
+        ],
+    ],  
 
     /*
     |--------------------------------------------------------------------------

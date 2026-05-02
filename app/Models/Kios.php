@@ -9,27 +9,19 @@ class Kios extends Model
 {
     use HasFactory;
 
-    /**
-     * Kolom yang bisa diisi secara massal.
-     * Kita hapus nama_pemilik, username, dan password karena 
-     * data tersebut sudah resmi pindah ke model Pedagang.
-     */
-    protected $fillable = [
-        'pedagang_id', // Kunci foreign key ke tabel pedagangs
-        'no_kios',
-        'nama_usaha',
-        'jenis_usaha',
-        'blok',
-        'status',
-    ];
+    // Nama tabel harus sama dengan yang digunakan di sisi Admin
+    protected $table = 'kios'; 
 
-    /**
-     * Relasi: Satu Kios dimiliki oleh satu Pedagang (Many-to-One)
-     * Ini adalah benang merah yang menghubungkan kios ke pemiliknya.
-     */
-    public function pedagang()
+protected $fillable = ['no_kios', 'blok', 'nama_usaha', 'nama_pedagang', 'jenis_usaha', 'status'];
+
+    public function pembayarans()
     {
-        // pedagang_id adalah kolom di tabel kios, id adalah primary key di tabel pedagangs
-        return $this->belongsTo(Pedagang::class, 'pedagang_id', 'id');
+        return $this->hasMany(Pembayaran::class, 'kios_id');
     }
+public function pedagang()
+{
+    // Relasi One-to-One: 1 Kios memiliki 1 Akun Pedagang
+    // Berdasarkan migrasi Anda, kolom penghubungnya adalah kios_id di tabel pedagangs
+    return $this->hasOne(Pedagang::class, 'kios_id');
+}
 }

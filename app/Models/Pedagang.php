@@ -14,13 +14,7 @@ class Pedagang extends Model
     // protected $primaryKey = 'id_pedagang';
 
     // 1. Kolom apa saja yang boleh diisi (Sesuaikan dengan migration kita sebelumnya)
-    protected $fillable = [
-        'nama_pemilik', 
-        'username', 
-        'password', 
-        'whatsapp', 
-        'foto'
-    ];
+protected $fillable = ['kios_id', 'username', 'password', 'nama_pemilik'];
 
     // =======================================================
     // 2. RELASI UTAMA: 1 Pedagang memiliki BANYAK Kios

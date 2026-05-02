@@ -14,32 +14,41 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Validasi Input
         $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
         ]);
 
+        // 1. CEK KAMAR ADMIN (Tabel users via Guard web default)
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            $role = Auth::user()->role;
-
-            if ($role == 'admin') {
-                return redirect()->intended('/admin/dashboard');
-            } elseif ($role == 'petugas') {
-                return redirect()->intended('/petugas/dashboard');
-            } elseif ($role == 'pedagang') {
-                return redirect()->intended('/pedagang/dashboard');
-            }
+            return redirect()->intended('/admin/dashboard');
+        } 
+        
+        // 2. CEK KAMAR PETUGAS (Tabel petugas via Guard petugas)
+        // Kita juga tambahkan syarat bahwa statusnya harus 'Aktif' agar bisa login
+        elseif (Auth::guard('petugas')->attempt(['username' => $request->username, 'password' => $request->password, 'status' => 'Aktif'])) {
+            $request->session()->regenerate();
+            return redirect()->intended('/petugas/dashboard');
         }
 
-        return back()->with('loginError', 'Username atau Password salah!');
+        // Jika salah semua atau status tidak aktif
+        return back()->with('loginError', 'Username, Password salah, atau Akun Non Aktif!');
     }
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        // Logout dari semua guard
+        if(Auth::guard('petugas')->check()){
+            Auth::guard('petugas')->logout();
+        } else {
+            Auth::logout();
+        }
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
         return redirect('/');
     }
 }

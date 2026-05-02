@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Kios;
+use App\Models\Pedagang;
 use App\Models\Petugas;
-use App\Models\Pedagang; 
 use App\Models\Iuran; 
 use Carbon\Carbon;     
 use Illuminate\Support\Facades\Hash;
@@ -15,13 +15,37 @@ use Illuminate\Support\Facades\Storage;
 class AdminController extends Controller
 {
     // =================================================================
-    // 1. HALAMAN UTAMA KELOLA DATA
+    // 1. DASHBOARD & STATISTIK
+    // =================================================================
+    public function dashboard()
+    {
+        $total_kios = Kios::count();
+        $kios_aktif = Kios::where('status', 'Aktif')->count();
+        $total_petugas = Petugas::count();
+        
+        $pemasukan_hari_ini = Iuran::whereDate('tgl_bayar', Carbon::today())->sum('nominal');
+        $sudah_bayar_hari_ini = Iuran::whereDate('tgl_bayar', Carbon::today())->where('status', 'Lunas')->count();
+
+        $label_hari = [];
+        $data_pemasukan = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $tanggal = Carbon::today()->subDays($i);
+            $label_hari[] = $tanggal->translatedFormat('d M');
+            $data_pemasukan[] = Iuran::whereDate('tgl_bayar', $tanggal)->sum('nominal');
+        }
+
+        return view('admin.dashboard', compact(
+            'total_kios', 'kios_aktif', 'pemasukan_hari_ini', 'sudah_bayar_hari_ini', 'label_hari', 'data_pemasukan'
+        ));
+    }
+
+    // =================================================================
+    // 2. KELOLA DATA KIOS & PEDAGANG
     // =================================================================
     public function dataKios()
     {
-        $kios = Kios::with('pedagang')->get(); 
+        $kios = Kios::all();
         $petugas = Petugas::all();
-
         $total_kios = Kios::count();
         $kios_aktif = Kios::where('status', 'Aktif')->count();
         $kios_nonaktif = Kios::where('status', 'Non Aktif')->count();
@@ -30,63 +54,62 @@ class AdminController extends Controller
         return view('admin.data_kios', compact(
             'kios', 'petugas', 'total_kios', 'kios_aktif', 'kios_nonaktif', 'total_petugas'
         ));
-    }   
-
-    // =================================================================
-    // 2. KELOLA KIOS & PEDAGANG (RELASIONAL)
-    // =================================================================
-    public function storeKios(Request $request)
-    {
-        // 1. Buat/Update akun pedagang
-        $pedagang = Pedagang::updateOrCreate(
-            ['username' => $request->username], 
-            [
-                'nama_pemilik' => $request->nama_pemilik,
-                'password' => Hash::make('pedagang123'), 
-                'whatsapp' => $request->whatsapp,
-            ]
-        );
-
-        // 2. Buat data kios yang tersambung ke pedagang_id
-        Kios::create([
-            'pedagang_id' => $pedagang->id, 
-            'no_kios' => $request->no_kios,
-            'nama_usaha' => $request->nama_usaha,
-            'jenis_usaha' => $request->jenis_usaha,
-            'blok' => $request->blok,
-            'status' => 'Aktif',
-        ]);
-
-        return back()->with('success', 'Data Kios & Pedagang berhasil disinkronkan!');
     }
 
-    public function updateKios(Request $request, $id)
-    {
-        $kios = Kios::with('pedagang')->findOrFail($id);
-        
-        // Update data Kios
-        $kios->update([
-            'nama_usaha' => $request->nama_usaha,
-            'jenis_usaha' => $request->jenis_usaha,
-            'status' => $request->status,
+ public function storeKios(Request $request)
+{
+    // 1. Validasi Data
+    $request->validate([
+        'no_kios'       => 'required|unique:kios,no_kios',
+        'blok'          => 'required',
+        'nama_usaha'    => 'required',
+        'nama_pedagang' => 'required',
+        'jenis_usaha'   => 'required',
+        'username'      => 'required|unique:pedagangs,username',
+    ]);
+
+    // 2. Gunakan Transaction agar data tersimpan sepasang (Kios & Pedagang)
+    \Illuminate\Support\Facades\DB::beginTransaction();
+
+    try {
+        // Simpan ke tabel kios
+        $kios = \App\Models\Kios::create([
+            'no_kios'       => $request->no_kios,
+            'blok'          => $request->blok,
+            'nama_usaha'    => $request->nama_usaha,
+            'nama_pedagang' => $request->nama_pedagang,
+            'jenis_usaha'   => $request->jenis_usaha,
+            'status'        => 'Aktif',
         ]);
 
-        // Update data Pedagang melalui relasi
-        if ($kios->pedagang) {
-            $kios->pedagang->update([
-                'nama_pemilik' => $request->nama_pemilik,
-                'username' => $request->username,
-            ]);
-        }
+        // Simpan ke tabel pedagangs
+        \App\Models\Pedagang::create([
+            'kios_id'      => $kios->id,
+            'username'     => $request->username,
+            'password'     => \Illuminate\Support\Facades\Hash::make('pedagang123'),
+            'nama_pemilik' => $request->nama_pedagang,
+        ]);
 
-        return back()->with('success', 'Data Kios & Pemilik berhasil diperbarui!');
+        \Illuminate\Support\Facades\DB::commit(); // Kirim ke database jika semua oke
+        return redirect()->back()->with('success', 'Kios dan Akun Pedagang Berhasil Dibuat!');
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\DB::rollback(); // Batalkan semua jika ada yang error
+        return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+    }
+}
+    public function updateKios(Request $request, $id)
+    {
+        $kios = Kios::findOrFail($id);
+        $kios->update($request->only(['no_kios', 'nama_usaha', 'nama_pedagang', 'jenis_usaha', 'status']));
+
+        return back()->with('success', 'Data Kios Berhasil Diperbarui!');
     }
 
     public function destroyKios($id)
     {
-        $kios = Kios::findOrFail($id);
-        $kios->delete(); 
-        return back()->with('success', 'Data Kios berhasil dihapus!');
+        Kios::findOrFail($id)->delete(); 
+        return back()->with('success', 'Data Kios Berhasil Dihapus!');
     }
 
     public function resetPasswordKios($id)
@@ -97,10 +120,10 @@ class AdminController extends Controller
             $kios->pedagang->update([
                 'password' => Hash::make('pedagang123')
             ]);
-            return back()->with('success', 'Password ' . $kios->pedagang->nama_pemilik . ' direset ke pedagang123!');
+            return back()->with('success', 'Password usaha ' . $kios->nama_usaha . ' berhasil direset!');
         }
 
-        return back()->with('error', 'Data pedagang tidak ditemukan!');
+        return back()->with('error', 'Akun login untuk pedagang ini belum dibuat!');
     }
 
     // =================================================================
@@ -123,73 +146,48 @@ class AdminController extends Controller
             'status' => 'Aktif',
         ]);
 
-        return back()->with('success', 'Petugas ' . $request->nama_petugas . ' berhasil ditambahkan!');
+        return back()->with('success', 'Petugas Berhasil Ditambahkan!');
     }
 
     public function updatePetugas(Request $request, $id) 
     {
-        $petugas = Petugas::findOrFail($id);
-        $petugas->update($request->all());
-        return back()->with('success', 'Data Petugas berhasil diupdate!');
+        Petugas::findOrFail($id)->update($request->all());
+        return back()->with('success', 'Data Petugas Berhasil Diupdate!');
     }
 
     public function destroyPetugas($id) 
     {
         Petugas::findOrFail($id)->delete();
-        return back()->with('success', 'Data Petugas berhasil dihapus!');
+        return back()->with('success', 'Data Petugas Berhasil Dihapus!');
     }
 
     public function resetPasswordPetugas($id) 
     {
         Petugas::findOrFail($id)->update(['password' => Hash::make('petugas123')]);
-        return back()->with('success', 'Password Petugas berhasil direset ke petugas123!');
+        return back()->with('success', 'Password Petugas Berhasil Direset!');
     }
 
     // =================================================================
-    // 4. IURAN, LAPORAN & DASHBOARD
+    // 4. IURAN & LAPORAN
     // =================================================================
-    public function kelolaIuran()
-    {
-        $hari_ini = Carbon::today();
-        $iuran = Iuran::with(['kios.pedagang', 'petugas'])->whereDate('tgl_bayar', $hari_ini)->get();
-        
-        $total_iuran = $iuran->sum('nominal');
-        $sudah_bayar = $iuran->where('status', 'Lunas')->count();
-        $total_kios_aktif = Kios::where('status', 'Aktif')->count();
-        $belum_bayar = max(0, $total_kios_aktif - $sudah_bayar);
+public function kelolaIuran()
+{
+    // Mengambil data iuran terbaru beserta relasi kiosnya
+    $iuran = \App\Models\Iuran::with('kios')->latest()->get();
+    
+    $total_iuran = $iuran->sum('nominal');
+    $sudah_bayar = $iuran->where('status', 'Lunas')->count();
+    $total_kios_aktif = \App\Models\Kios::where('status', 'Aktif')->count();
+    $belum_bayar = max(0, $total_kios_aktif - $sudah_bayar);
 
-        return view('admin.kelola_iuran', compact('iuran', 'total_iuran', 'sudah_bayar', 'belum_bayar'));
-    }
-
-    public function dashboard()
-    {
-        $total_kios = Kios::count();
-        $kios_aktif = Kios::where('status', 'Aktif')->count();
-        $pemasukan_hari_ini = Iuran::whereDate('tgl_bayar', Carbon::today())->sum('nominal');
-        $sudah_bayar_hari_ini = Iuran::whereDate('tgl_bayar', Carbon::today())->where('status', 'Lunas')->count();
-        
-        $pemasukan_bulan_ini = Iuran::whereMonth('tgl_bayar', Carbon::now()->month)
-            ->whereYear('tgl_bayar', Carbon::now()->year)->sum('nominal');
-
-        $label_hari = [];
-        $data_pemasukan = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $tanggal = Carbon::today()->subDays($i);
-            $label_hari[] = $tanggal->translatedFormat('d M');
-            $data_pemasukan[] = Iuran::whereDate('tgl_bayar', $tanggal)->sum('nominal');
-        }
-
-        return view('admin.dashboard', compact(
-            'total_kios', 'kios_aktif', 'pemasukan_hari_ini', 'sudah_bayar_hari_ini', 'pemasukan_bulan_ini', 'label_hari', 'data_pemasukan'
-        ));
-    }
-
+    return view('admin.kelola_iuran', compact('iuran', 'total_iuran', 'sudah_bayar', 'belum_bayar'));
+}
     public function laporan(Request $request)
     {
         $tgl_mulai = $request->tgl_mulai ?? Carbon::now()->startOfMonth()->format('Y-m-d');
         $tgl_selesai = $request->tgl_selesai ?? Carbon::now()->endOfMonth()->format('Y-m-d');
 
-        $iuran = Iuran::with(['kios.pedagang', 'petugas'])
+        $iuran = Iuran::with(['kios'])
             ->whereBetween('tgl_bayar', [$tgl_mulai, $tgl_selesai])
             ->orderBy('tgl_bayar', 'desc')->get();
 
@@ -199,13 +197,16 @@ class AdminController extends Controller
         return view('admin.laporan', compact('iuran', 'tgl_mulai', 'tgl_selesai', 'total_pemasukan', 'total_transaksi'));
     }
 
+    // =================================================================
+    // 5. PROFIL ADMIN
+    // =================================================================
     public function profil() {
         return view('admin.profil', ['user' => Auth::user()]);
     }
 
     public function updateProfil(Request $request) {
         $user = Auth::user();
-        $data = $request->only(['name', 'username', 'nip', 'email', 'whatsapp']);
+        $data = $request->only(['name', 'username', 'email', 'whatsapp']);
 
         if ($request->hasFile('foto')) {
             if ($user->foto && Storage::disk('public')->exists($user->foto)) {
@@ -215,6 +216,7 @@ class AdminController extends Controller
         }
 
         $user->update($data);
-        return back()->with('success', 'Profil diperbarui!');
+        return back()->with('success', 'Profil Berhasil Diperbarui!');
     }
-}
+    
+}   
