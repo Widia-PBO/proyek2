@@ -78,6 +78,7 @@
             <div class="card border-0 shadow-sm w-100" style="border-radius: 15px; overflow: hidden; max-width: 1100px;">
                 <div class="tab-content">
                     
+                    {{-- TAB DATA KIOS --}}
                     <div class="tab-pane fade show active" id="pills-kios">
                         <table class="table table-hover align-middle mb-0 text-start">
                             <thead class="bg-light text-muted">
@@ -91,121 +92,103 @@
                                 </tr>
                             </thead>
                             <tbody>
-    @forelse($kios as $k)
-    <tr>
-        <td class="ps-4 fw-bold text-primary">{{ $k->no_kios }}</td>
-        
-        <td>{{ $k->nama_usaha }}</td>
-        
-        <td><span class="badge bg-info text-white opacity-75">{{ $k->jenis_usaha ?? 'Sembako' }}</span></td>
-        
-        <td>{{ $k->nama_pedagang ?? '-' }}</td>
+                                @forelse($kios as $k)
+                                <tr>
+                                    <td class="ps-4 fw-bold text-primary">{{ $k->no_kios }}</td>
+                                    <td>{{ $k->nama_usaha }}</td>
+                                    <td><span class="badge bg-info text-white opacity-75">{{ $k->jenis_usaha ?? 'Sembako' }}</span></td>
+                                    <td>{{ $k->nama_pedagang ?? '-' }}</td>
+                                    <td><span class="badge {{ $k->status == 'Aktif' ? 'bg-success' : 'bg-secondary' }} opacity-75">{{ $k->status ?? 'Aktif' }}</span></td>
+                                    <td class="text-center pe-4">
+                                        <div class="d-flex justify-content-center gap-3">
+                                            <a href="#" class="text-primary fs-5" data-bs-toggle="modal" data-bs-target="#modalEditKios{{ $k->id }}"><i class="bi bi-pencil-square"></i></a>
+                                            <a href="#" class="text-info fs-5" data-bs-toggle="modal" data-bs-target="#modalResetKios{{ $k->id }}"><i class="bi bi-arrow-counterclockwise"></i></a>
+                                            <a href="#" class="text-danger fs-5" data-bs-toggle="modal" data-bs-target="#modalHapusKios{{ $k->id }}"><i class="bi bi-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
 
-        <td>
-            <span class="badge {{ $k->status == 'Aktif' ? 'bg-success' : 'bg-secondary' }} opacity-75">
-                {{ $k->status ?? 'Aktif' }}
-            </span>
-        </td>
+                                {{-- MODAL KIOS (EDIT, RESET, HAPUS) --}}
+                                <div class="modal fade" id="modalResetKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-kios/'.$k->id.'/reset-password') }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-body text-center p-4">
+                                                    <i class="bi bi-shield-lock text-info mb-3" style="font-size: 3rem;"></i>
+                                                    <p class="fw-bold fs-5 mb-1">Reset Password?</p>
+                                                    <p class="text-muted small mb-4">Password untuk usaha <b>{{ $k->nama_usaha }}</b> akan direset ke: <span class="badge bg-light text-dark">pedagang123</span></p>
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <button type="submit" class="btn btn-info text-white shadow-sm px-4 fw-bold">Ya, Reset</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
 
-        <td class="text-center pe-4">
-            <div class="d-flex justify-content-center gap-3">
-                <a href="#" class="text-primary fs-5" data-bs-toggle="modal" data-bs-target="#modalEditKios{{ $k->id }}">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <a href="#" class="text-info fs-5" data-bs-toggle="modal" data-bs-target="#modalResetKios{{ $k->id }}">
-                    <i class="bi bi-arrow-counterclockwise"></i>
-                </a>
-                <a href="#" class="text-danger fs-5" data-bs-toggle="modal" data-bs-target="#modalHapusKios{{ $k->id }}">
-                    <i class="bi bi-trash"></i>
-                </a>
-            </div>
-        </td>
-    </tr>
+                                <div class="modal fade" id="modalEditKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-kios/' . $k->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title w-100 text-center fw-bold mt-2 text-primary">Edit Data Kios</h5>
+                                                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body px-4 pb-4">
+                                                    <label class="small text-muted">No Kios :</label>
+                                                    <input type="text" name="no_kios" class="form-control border-bottom-only mb-3" value="{{ $k->no_kios }}" required>
+                                                    <label class="small text-muted">Nama Usaha :</label>
+                                                    <input type="text" name="nama_usaha" class="form-control border-bottom-only mb-3" value="{{ $k->nama_usaha }}" required>
+                                                    <label class="small text-muted">Nama Pedagang :</label>
+                                                    <input type="text" name="nama_pedagang" class="form-control border-bottom-only mb-3" value="{{ $k->nama_pedagang }}" required>
+                                                    <label class="small text-muted">Jenis Usaha :</label>
+                                                    <select name="jenis_usaha" class="form-select border-bottom-only mb-3" required>
+                                                        <option value="Sembako" {{ $k->jenis_usaha == 'Sembako' ? 'selected' : '' }}>Sembako</option>
+                                                        <option value="Buah-buahan" {{ $k->jenis_usaha == 'Buah-buahan' ? 'selected' : '' }}>Buah-buahan</option>
+                                                        <option value="Sayuran" {{ $k->jenis_usaha == 'Sayuran' ? 'selected' : '' }}>Sayuran</option>
+                                                    </select>
+                                                    <label class="small text-muted">Status :</label>
+                                                    <select name="status" class="form-select border-bottom-only mb-3">
+                                                        <option value="Aktif" {{ $k->status == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                                                        <option value="Non Aktif" {{ $k->status == 'Non Aktif' ? 'selected' : '' }}>Non Aktif</option>
+                                                    </select>
+                                                    <div class="d-flex justify-content-center gap-3 mt-4">
+                                                        <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Update Data</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
 
-    <div class="modal fade" id="modalResetKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <form action="{{ url('/admin/data-kios/'.$k->id.'/reset-password') }}" method="POST">
-                    @csrf @method('PUT')
-                    <div class="modal-body text-center p-4">
-                        <i class="bi bi-shield-lock text-info mb-3" style="font-size: 3rem;"></i>
-                        <p class="fw-bold fs-5 mb-1">Reset Password?</p>
-                        <p class="text-muted small mb-4">Password untuk usaha <b>{{ $k->nama_usaha }}</b> akan direset ke: <span class="badge bg-light text-dark">pedagang123</span></p>
-                        <div class="d-flex justify-content-center gap-3">
-                            <button type="submit" class="btn btn-info text-white shadow-sm px-4 fw-bold">Ya, Reset</button>
-                            <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalEditKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <form action="{{ url('/admin/data-kios/' . $k->id) }}" method="POST">
-                    @csrf @method('PUT')
-                    <div class="modal-header border-0 pb-0">
-                        <h5 class="modal-title w-100 text-center fw-bold mt-2 text-primary">Edit Data Kios</h5>
-                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body px-4 pb-4">
-                        <label class="small text-muted">No Kios :</label>
-                        <input type="text" name="no_kios" class="form-control border-bottom-only mb-3" value="{{ $k->no_kios }}" required>
-                        
-                        <label class="small text-muted">Nama Usaha :</label>
-                        <input type="text" name="nama_usaha" class="form-control border-bottom-only mb-3" value="{{ $k->nama_usaha }}" required>
-                        
-                        <label class="small text-muted">Nama Pedagang :</label>
-                        <input type="text" name="nama_pedagang" class="form-control border-bottom-only mb-3" value="{{ $k->nama_pedagang }}" required>
-                        
-                        <label class="small text-muted">Jenis Usaha :</label>
-                        <select name="jenis_usaha" class="form-select border-bottom-only mb-3" required>
-                            <option value="Sembako" {{ $k->jenis_usaha == 'Sembako' ? 'selected' : '' }}>Sembako</option>
-                            <option value="Buah-buahan" {{ $k->jenis_usaha == 'Buah-buahan' ? 'selected' : '' }}>Buah-buahan</option>
-                            <option value="Sayuran" {{ $k->jenis_usaha == 'Sayuran' ? 'selected' : '' }}>Sayuran</option>
-                        </select>
-                        
-                        <label class="small text-muted">Status :</label>
-                        <select name="status" class="form-select border-bottom-only mb-3">
-                            <option value="Aktif" {{ $k->status == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                            <option value="Non Aktif" {{ $k->status == 'Non Aktif' ? 'selected' : '' }}>Non Aktif</option>
-                        </select>
-
-                        <div class="d-flex justify-content-center gap-3 mt-4">
-                            <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Update Data</button>
-                            <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalHapusKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
-                <form action="{{ url('/admin/data-kios/'.$k->id) }}" method="POST">
-                    @csrf @method('DELETE')
-                    <div class="modal-body text-center p-4">
-                        <p class="fw-bold fs-5 mb-4 text-danger">Hapus data {{ $k->nama_usaha }}?</p>
-                        <div class="d-flex justify-content-center gap-3">
-                            <button type="submit" class="btn btn-danger shadow-sm px-4 fw-bold">Ya, Hapus</button>
-                            <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Tidak</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @empty
-    <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data kios.</td></tr>
-    @endforelse
-</tbody>
+                                <div class="modal fade" id="modalHapusKios{{ $k->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-kios/'.$k->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <div class="modal-body text-center p-4">
+                                                    <p class="fw-bold fs-5 mb-4 text-danger">Hapus data {{ $k->nama_usaha }}?</p>
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <button type="submit" class="btn btn-danger shadow-sm px-4 fw-bold">Ya, Hapus</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Tidak</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @empty
+                                <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data kios.</td></tr>
+                                @endforelse
+                            </tbody>
                         </table>
                     </div>
 
+                    {{-- TAB DATA PETUGAS --}}
                     <div class="tab-pane fade" id="pills-petugas">
                         <table class="table table-hover align-middle mb-0 text-start">
                             <thead class="bg-light text-muted">
@@ -226,11 +209,80 @@
                                     <td>{{ $p->kontak }}</td>
                                     <td class="text-center pe-4">
                                         <div class="d-flex justify-content-center gap-3">
+                                            {{-- ICON AKSI PETUGAS --}}
                                             <a href="#" class="text-primary fs-5" data-bs-toggle="modal" data-bs-target="#modalEditPetugas{{ $p->id }}"><i class="bi bi-pencil-square"></i></a>
+                                            <a href="#" class="text-info fs-5" data-bs-toggle="modal" data-bs-target="#modalResetPetugas{{ $p->id }}"><i class="bi bi-arrow-counterclockwise"></i></a>
                                             <a href="#" class="text-danger fs-5" data-bs-toggle="modal" data-bs-target="#modalHapusPetugas{{ $p->id }}"><i class="bi bi-trash"></i></a>
                                         </div>
                                     </td>
                                 </tr>
+
+                                {{-- MODAL PETUGAS (EDIT, RESET, HAPUS) --}}
+                                <div class="modal fade" id="modalResetPetugas{{ $p->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-petugas/'.$p->id.'/reset-password') }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-body text-center p-4">
+                                                    <i class="bi bi-shield-lock text-info mb-3" style="font-size: 3rem;"></i>
+                                                    <p class="fw-bold fs-5 mb-1">Reset Password?</p>
+                                                    <p class="text-muted small mb-4">Password untuk petugas <b>{{ $p->nama_petugas }}</b> akan direset ke: <span class="badge bg-light text-dark">petugas123</span></p>
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <button type="submit" class="btn btn-info text-white shadow-sm px-4 fw-bold">Ya, Reset</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="modalEditPetugas{{ $p->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-petugas/' . $p->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-header border-0 pb-0">
+                                                    <h5 class="modal-title w-100 text-center fw-bold mt-2 text-primary">Edit Data Petugas</h5>
+                                                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body px-4 pb-4">
+                                                    <label class="small text-muted">ID Petugas :</label>
+                                                    <input type="text" name="id_petugas" class="form-control border-bottom-only mb-3" value="{{ $p->id_petugas }}" required>
+                                                    <label class="small text-muted">Nama Petugas :</label>
+                                                    <input type="text" name="nama_petugas" class="form-control border-bottom-only mb-3" value="{{ $p->nama_petugas }}" required>
+                                                    <label class="small text-muted">Username :</label>
+                                                    <input type="text" name="username" class="form-control border-bottom-only mb-3" value="{{ $p->username }}" required>
+                                                    <label class="small text-muted">Wilayah Tugas :</label>
+                                                    <input type="text" name="wilayah_tugas" class="form-control border-bottom-only mb-3" value="{{ $p->wilayah_tugas }}" required>
+                                                    <label class="small text-muted">Kontak :</label>
+                                                    <input type="text" name="kontak" class="form-control border-bottom-only mb-3" value="{{ $p->kontak }}" required>
+                                                    <div class="d-flex justify-content-center gap-3 mt-4">
+                                                        <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Update Data</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Batal</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="modalHapusPetugas{{ $p->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                                            <form action="{{ url('/admin/data-petugas/'.$p->id) }}" method="POST">
+                                                @csrf @method('DELETE')
+                                                <div class="modal-body text-center p-4">
+                                                    <p class="fw-bold fs-5 mb-4 text-danger">Hapus data petugas {{ $p->nama_petugas }}?</p>
+                                                    <div class="d-flex justify-content-center gap-3">
+                                                        <button type="submit" class="btn btn-danger shadow-sm px-4 fw-bold">Ya, Hapus</button>
+                                                        <button type="button" class="btn btn-light px-4 fw-bold border" data-bs-dismiss="modal">Tidak</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                                 @empty
                                 <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada data petugas.</td></tr>
                                 @endforelse
@@ -242,7 +294,8 @@
         </div>
     </div>
 
-   <div class="modal fade" id="modalTambahKios" tabindex="-1" aria-hidden="true">
+    {{-- MODAL TAMBAH KIOS --}}
+    <div class="modal fade" id="modalTambahKios" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
                 <form action="{{ url('/admin/data-kios/store') }}" method="POST">
@@ -251,27 +304,22 @@
                         <h5 class="modal-title w-100 text-center fw-bold mt-2 text-primary">Tambah Kios Baru</h5>
                         <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                     </div>
-                    
                     <div class="modal-body px-4 pb-4 text-start">
                         <input type="text" name="no_kios" class="form-control border-bottom-only mb-3" placeholder="No. Kios" required>
-                        
                         <select name="blok" class="form-select border-bottom-only mb-3" required>
                             <option value="" disabled selected>Pilih Blok</option>
                             <option value="A">Blok A</option>
                             <option value="B">Blok B</option>
                         </select>
-
                         <input type="text" name="nama_usaha" class="form-control border-bottom-only mb-3" placeholder="Nama Usaha" required>
                         <input type="text" name="nama_pedagang" class="form-control border-bottom-only mb-3" placeholder="Nama Pedagang" required>
                         <input type="text" name="username" class="form-control border-bottom-only mb-3" placeholder="Username Login Pedagang" required>
-
                         <select name="jenis_usaha" class="form-select border-bottom-only mb-3" required>
                             <option value="" disabled selected>Pilih Kategori</option>
                             <option value="Sembako">Sembako</option>
                             <option value="Buah-buahan">Buah-buahan</option>
                             <option value="Sayuran">Sayuran</option>
                         </select>
-
                         <div class="d-flex justify-content-center gap-3 mt-4">
                             <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Simpan</button>
                             <button type="button" class="btn btn-light border px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Batal</button>
@@ -282,6 +330,7 @@
         </div>
     </div>
 
+    {{-- MODAL TAMBAH PETUGAS --}}
     <div class="modal fade" id="modalTambahPetugas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
@@ -291,27 +340,20 @@
                         <h5 class="modal-title w-100 text-center fw-bold mt-2 text-primary">Tambah Petugas Baru</h5>
                         <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                     </div>
-                    
                     <div class="modal-body px-4 pb-4 text-start">
                         <label class="small text-muted">ID Petugas :</label>
                         <input type="text" name="id_petugas" class="form-control border-bottom-only mb-3" placeholder="Contoh: PTG001" required>
-                        
                         <label class="small text-muted">Nama Lengkap :</label>
                         <input type="text" name="nama_petugas" class="form-control border-bottom-only mb-3" placeholder="Nama Petugas" required>
-
                         <label class="small text-muted">Username Login :</label>
                         <input type="text" name="username" class="form-control border-bottom-only mb-3" placeholder="Username" required>
-
                         <label class="small text-muted">Wilayah Tugas :</label>
                         <input type="text" name="wilayah_tugas" class="form-control border-bottom-only mb-3" placeholder="Contoh: Blok A / Seluruh Pasar" required>
-
                         <label class="small text-muted">Kontak/WA :</label>
                         <input type="text" name="kontak" class="form-control border-bottom-only mb-3" placeholder="08xxxxxxxxxx" required>
-
                         <div class="alert alert-info py-2 small mb-0 mt-2">
                             <i class="bi bi-info-circle me-1"></i> Password default: <b>petugas123</b>
                         </div>
-
                         <div class="d-flex justify-content-center gap-3 mt-4">
                             <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Simpan Petugas</button>
                             <button type="button" class="btn btn-light border px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Batal</button>

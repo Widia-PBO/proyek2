@@ -60,21 +60,62 @@ return view('petugas.dashboard', compact(
     }
 
     public function prosesBayar(Request $request)
-    {
-        $petugas = Auth::guard('petugas')->user();
+{
+    $petugas = Auth::guard('petugas')->user();
+    
+    // Ambil tarif iuran terbaru dari database (default 10000 jika belum ada)
+    $tarif = \DB::table('settings')->where('key', 'tarif_iuran')->value('value') ?? 10000;
 
-        Pembayaran::create([
-            'kios_id' => $request->kios_id,
-            'petugas_id' => $petugas->id,
-            'tanggal_bayar' => date('Y-m-d'),
-            'total_bayar' => 10000,
-            'metode_pembayaran' => 'Tunai',
-            'status' => 'Lunas'
-        ]);
+    Pembayaran::create([
+        'kios_id' => $request->kios_id,
+        'petugas_id' => $petugas->id,
+        'tanggal_bayar' => date('Y-m-d'),
+        'total_bayar' => $tarif, // Ambil dari pengaturan Admin
+        'metode_pembayaran' => 'Tunai', // Karena ditagih petugas, pasti Tunai
+        'status' => 'Lunas'
+    ]);
 
-        return redirect()->back()->with('success', 'Iuran kios berhasil dicatat!');
-    }
+    return redirect()->back()->with('success', 'Iuran kios berhasil dicatat!');
+}
+// app/Http/Controllers/PetugasController.php
 
+public function riwayatSetoran()
+{
+    $petugas = Auth::guard('petugas')->user(); //
+    $today = date('Y-m-d');
+
+    // 1. Total Iuran Hari Ini (Nominal yang siap disetor)
+    $total_setoran = Pembayaran::where('petugas_id', $petugas->id)
+        ->where('tanggal_bayar', $today)
+        ->sum('total_bayar');
+
+    // 2. Ringkasan Tugas (Statistik)
+    $total_kios_aktif = Kios::where('status', 'Aktif')->count();
+    $kios_lunas = Pembayaran::where('tanggal_bayar', $today)
+        ->where('petugas_id', $petugas->id)
+        ->count();
+    $kios_belum_ditagih = max(0, $total_kios_aktif - $kios_lunas);
+    
+    // Hitung persentase progres
+    $persentase = ($total_kios_aktif > 0) ? round(($kios_lunas / $total_kios_aktif) * 100) : 0;
+
+    // 3. Daftar Riwayat Penagihan Tunai Hari Ini
+    $riwayat = Pembayaran::with('kios')
+        ->where('petugas_id', $petugas->id)
+        ->where('tanggal_bayar', $today)
+        ->latest()
+        ->get();
+
+    return view('petugas.riwayat_setoran', compact(
+        'petugas', 
+        'total_setoran', 
+        'total_kios_aktif', 
+        'kios_lunas', 
+        'kios_belum_ditagih', 
+        'persentase',
+        'riwayat'
+    ));
+}
     public function batalkanBayar(Request $request)
     {
         $pembayaran = Pembayaran::where('kios_id', $request->kios_id)
@@ -88,4 +129,36 @@ return view('petugas.dashboard', compact(
 
         return redirect()->back()->with('error', 'Data pembayaran tidak ditemukan.');
     }
-}
+    // Tambahkan di dalam class PetugasController
+// ... kode fungsi lainnya ...
+
+    public function profil() 
+    {
+        return view('petugas.profil_petugas', [
+            'user' => Auth::guard('petugas')->user()
+        ]);
+    }
+
+    public function updateProfil(Request $request)
+    {
+        $user = Auth::guard('petugas')->user();
+        
+        $request->validate([
+            'nama_petugas' => 'required|string|max:255',
+            'kontak' => 'required',
+            'foto' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
+        ]);
+
+        $data = $request->only(['nama_petugas', 'kontak']);
+
+        if ($request->hasFile('foto')) {
+            if ($user->foto && \Storage::disk('public')->exists($user->foto)) {
+                \Storage::disk('public')->delete($user->foto);
+            }
+            $data['foto'] = $request->file('foto')->store('profil_petugas', 'public');
+        }
+
+        $user->update($data);
+        return back()->with('success', 'Profil Anda berhasil diperbarui!');
+    }
+} 

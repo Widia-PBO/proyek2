@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -72,7 +72,7 @@
 <body>
 
     <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container-fluid position-relative"> 
+        <div class="container-fluid position-relative">
             <img src="{{ asset('assets/img/logo_pasar.png') }}" class="logo-nav me-4" alt="Logo">
 
             <button class="navbar-toggler shadow-none border-0" type="button" data-bs-toggle="collapse"
@@ -82,20 +82,24 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
 
-               <ul class="navbar-nav navbar-center-absolute mb-2 mb-lg-0">
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('petugas/dashboard') ? 'active fw-bold' : '' }}"
-            href="{{ url('/petugas/dashboard') }}">Beranda</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('petugas/penagihan*') ? 'active fw-bold' : '' }}"
-            href="{{ url('/petugas/penagihan') }}">Penagihan</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('petugas/riwayat*') ? 'active fw-bold' : '' }}"
-            href="#">Riwayat Setoran</a>
-    </li>
-</ul>
+                <ul class="navbar-nav navbar-center-absolute mb-2 mb-lg-0">
+                    @if(Auth::guard('petugas')->check())
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('petugas/dashboard') ? 'active' : '' }}"
+                                href="{{ url('/petugas/dashboard') }}">Beranda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('petugas/penagihan') ? 'active' : '' }}"
+                                href="{{ url('/petugas/penagihan') }}">Penagihan</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Request::is('petugas/riwayat-setoran') ? 'active' : '' }}"
+                                href="{{ url('/petugas/riwayat-setoran') }}">
+                                Riwayat Setoran
+                            </a>
+                        </li>
+                    @endif
+                </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center pe-0" href="#" id="navbarDropdown"
@@ -110,15 +114,17 @@
                         <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2"
                             aria-labelledby="navbarDropdown" style="border-radius: 12px; min-width: 200px;">
                             <li class="px-3 py-2 text-center border-bottom mb-2 d-block">
-                                <span class="fw-bold text-dark">{{ Auth::guard('petugas')->user()->nama_petugas }}</span><br>
-                                <small class="text-muted">Petugas - {{ Auth::guard('petugas')->user()->wilayah_tugas }}</small>
+                                <span
+                                    class="fw-bold text-dark">{{ Auth::guard('petugas')->user()->nama_petugas }}</span><br>
+                                <small class="text-muted">Petugas -
+                                    {{ Auth::guard('petugas')->user()->wilayah_tugas }}</small>
                             </li>
-                            <li>
-                                <a class="dropdown-item py-2 fw-semibold text-secondary" href="#">
-                                    <i class="bi bi-person-fill me-2 text-primary fs-5 align-middle"></i> Profil Saya
-                                </a>
-                            </li>
-                            <li>
+<li>
+    <a class="dropdown-item py-2 fw-semibold text-secondary" href="{{ url('/petugas/profil') }}">
+        <i class="bi bi-person-fill me-2 text-primary fs-5 align-middle"></i> Profil Saya
+    </a>
+</li>
+                            <li>    
                                 <hr class="dropdown-divider">
                             </li>
                             <li>

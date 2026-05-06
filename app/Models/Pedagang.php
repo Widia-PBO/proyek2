@@ -3,37 +3,53 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; // Kunci utama untuk login
+use Illuminate\Notifications\Notifiable;
 
-class Pedagang extends Model 
+class Pedagang extends Authenticatable 
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
-    // Catatan: Jika Tuan Muda menggunakan 'id' bawaan Laravel, $primaryKey tidak perlu ditulis.
-    // Tapi jika Tuan Muda spesifik membuat kolomnya bernama 'id_pedagang', buka komentar di bawah ini:
-    // protected $primaryKey = 'id_pedagang';
+    // Nama tabel di database
+    protected $table = 'pedagangs';
 
-    // 1. Kolom apa saja yang boleh diisi (Sesuaikan dengan migration kita sebelumnya)
-protected $fillable = ['kios_id', 'username', 'password', 'nama_pemilik'];
+    /**
+     * Kolom yang boleh diisi secara massal.
+     * kordinasi dengan migration: kios_id digunakan untuk relasi ke data fisik kios[cite: 14].
+     */
+    protected $fillable = [
+        'kios_id', 
+        'username', 
+        'password', 
+        'nama_pemilik'
+    ];
+
+    /**
+     * Kolom yang harus disembunyikan saat data dipanggil (keamanan).
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     // =======================================================
-    // 2. RELASI UTAMA: 1 Pedagang memiliki BANYAK Kios
+    // RELASI UTAMA
     // =======================================================
+
+    /**
+     * Hubungan ke data Kios.
+     * Karena tabel pedagangs memiliki 'kios_id', maka relasinya adalah belongsTo[cite: 14].
+     */
     public function kios() 
     { 
-        // Penjelasan: Tabel Kios memegang kunci 'pedagang_id'
-        return $this->hasMany(Kios::class, 'pedagang_id', 'id'); 
+        return $this->belongsTo(Kios::class, 'kios_id'); 
     }
 
-    // =======================================================
-    // 3. RELASI TAMBAHAN (Sesuai rencana Tuan Muda)
-    // =======================================================
+    /**
+     * Relasi ke data Tagihan (Opsional sesuai perencanaan).
+     */
     public function tagihans() 
     { 
         return $this->hasMany(Tagihan::class, 'pedagang_id', 'id'); 
     }
-
-    // Relasi User saya matikan sementara. 
-    // Karena Pedagang sudah punya username & password sendiri, biasanya mereka tidak perlu dihubungkan lagi ke tabel users (Super Admin).
-    // public function user() { return $this->belongsTo(User::class, 'id_user'); }
-}   
+}

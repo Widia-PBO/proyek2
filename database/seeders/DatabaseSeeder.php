@@ -20,4 +20,6 @@ public function run(): void
         PasarSeeder::class,
     ]);
 }   
+
 }
+

@@ -14,37 +14,41 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        // Validasi Input
+        // Validasi input
         $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
         ]);
 
-        // 1. CEK KAMAR ADMIN (Tabel users via Guard web default)
-        if (Auth::attempt($credentials)) {
+        // 1. CEK SEBAGAI ADMIN (Tabel Users)[cite: 13]
+        if (Auth::guard('web')->attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->intended('/admin/dashboard');
         } 
         
-        // 2. CEK KAMAR PETUGAS (Tabel petugas via Guard petugas)
-        // Kita juga tambahkan syarat bahwa statusnya harus 'Aktif' agar bisa login
-        elseif (Auth::guard('petugas')->attempt(['username' => $request->username, 'password' => $request->password, 'status' => 'Aktif'])) {
+        // 2. CEK SEBAGAI PETUGAS (Tabel Petugas)[cite: 13]
+        // Menambahkan syarat status harus 'Aktif' agar bisa masuk[cite: 13]
+        if (Auth::guard('petugas')->attempt(['username' => $request->username, 'password' => $request->password, 'status' => 'Aktif'])) {
             $request->session()->regenerate();
             return redirect()->intended('/petugas/dashboard');
         }
 
-        // Jika salah semua atau status tidak aktif
+        // 3. CEK SEBAGAI PEDAGANG (Tabel Pedagangs)
+        if (Auth::guard('pedagang')->attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended('/pedagang/dashboard');
+        }
+
+        // Jika tidak terdaftar di manapun[cite: 13]
         return back()->with('loginError', 'Username, Password salah, atau Akun Non Aktif!');
     }
 
     public function logout(Request $request)
     {
-        // Logout dari semua guard
-        if(Auth::guard('petugas')->check()){
-            Auth::guard('petugas')->logout();
-        } else {
-            Auth::logout();
-        }
+        // Keluar dari semua kemungkinan guard[cite: 13]
+        Auth::guard('web')->logout();
+        Auth::guard('petugas')->logout();
+        Auth::guard('pedagang')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

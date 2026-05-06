@@ -48,57 +48,68 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0">Riwayat Pembayaran Hari Ini</h4>
-        <div>
-            <button class="btn btn-light shadow-sm px-4 py-2 fw-bold me-2" style="border-radius: 8px; border: 1px solid #ddd;">
-                <i class="bi bi-file-earmark-arrow-down me-1"></i> Export Laporan
-            </button>
-        </div>
+            
     </div>
+{{-- Tombol Atur Nominal (Letakkan di samping tombol Export) --}}
+<button class="btn btn-dark shadow-sm px-4 fw-bold me-2" data-bs-toggle="modal" data-bs-target="#modalAturNominal">
+    <i class="bi bi-gear-fill me-2"></i> Atur Nominal (Rp {{ number_format($tarif, 0, ',', '.') }})
+</button>
 
-    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr>
-                        <th>Waktu</th>
-                        <th>No. Kios</th>
-                        <th>Nama Usaha</th>
-                        <th>Petugas Penagih</th>
-                        <th>Metode</th>
-                        <th>Nominal</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($iuran as $i)
-                    <tr>
-                        <td class="text-muted" style="font-size: 14px;">{{ \Carbon\Carbon::parse($i->created_at)->format('H:i') }} WIB</td>
-                        <td><span class="fw-bold">{{ $i->kios->no_kios }}</span></td>
-                        <td>{{ $i->kios->nama_usaha }}</td>
-                        <td>{{ $i->petugas ? $i->petugas->nama_petugas : 'Mandiri (Sistem)' }}</td>
-                        <td>
-                            <span class="badge {{ $i->metode == 'Tunai' ? 'bg-info text-dark' : 'bg-primary' }}">
-                                {{ $i->metode }}
-                            </span>
-                        </td>
-                        <td class="fw-bold text-success">Rp {{ number_format($i->nominal, 0, ',', '.') }}</td>
-                        <td>
-                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>{{ $i->status }}</span>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-5">
-                            <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-                            Belum ada transaksi iuran yang masuk hari ini.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+{{-- Tabel yang sudah diperbaiki --}}
+<table class="table table-hover align-middle mb-0">
+    <thead class="bg-light">
+        <tr>
+            <th>Waktu</th>
+            <th>No. Kios</th>
+            <th>Nama Usaha</th>
+            <th>Petugas Penagih</th>
+            <th>Metode</th>
+            <th>Nominal</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($iuran as $i)
+        <tr>
+            <td>{{ \Carbon\Carbon::parse($i->created_at)->format('H:i') }} WIB</td>
+            <td><span class="fw-bold">{{ $i->kios->no_kios }}</span></td>
+            <td>{{ $i->kios->nama_usaha }}</td>
+            <td>{{ $i->petugas ? $i->petugas->nama_petugas : 'Mandiri (Sistem)' }}</td>
+            <td>
+                <span class="badge {{ $i->metode_pembayaran == 'Tunai' ? 'bg-info text-dark' : 'bg-primary' }}">
+                    {{ $i->metode_pembayaran }}
+                </span>
+            </td>
+            <td class="fw-bold text-success">Rp {{ number_format($i->total_bayar, 0, ',', '.') }}</td>
+            <td><span class="badge bg-success">Lunas</span></td>
+        </tr>
+        @empty
+        {{-- ... kode empty tetap sama ... --}}
+        @endforelse
+    </tbody>
+</table>
+
+{{-- MODAL ATUR NOMINAL --}}
+<div class="modal fade" id="modalAturNominal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <form action="{{ url('/admin/iuran/update-tarif') }}" method="POST">
+                @csrf
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-cash-coin text-primary mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold">Atur Nominal Iuran</h5>
+                    <p class="text-muted small">Ubah tarif iuran harian untuk seluruh kios.</p>
+                    <input type="number" name="nominal" class="form-control text-center fs-4 fw-bold mb-3 border-bottom-only" value="{{ $tarif }}" required>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Simpan Perubahan</button>
+                        <button type="button" class="btn btn-light border w-100 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+   
 
 <style>
     /* Styling Tabel Bawaan */

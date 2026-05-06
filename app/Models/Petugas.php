@@ -2,24 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable; // Penting![cite: 16]
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable; // <-- Ini Kuncinya
 
 class Petugas extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
-    // Pastikan fillable sesuai dengan kolom di database kamu
-    protected $fillable = [
-        'id_petugas', 'nama_petugas', 'username', 'password', 'wilayah_tugas', 'kontak', 'status'
-    ];
+    protected $table = 'petugas';
+    protected $fillable = ['id_petugas', 'nama_petugas', 'username', 'password', 'wilayah_tugas', 'kontak', 'status'];
+    protected $hidden = ['password'];
 
-    protected $hidden = [
-        'password',
-    ];
-    // Relasi: Satu Petugas bisa mencatat banyak data Pembayaran
     public function pembayarans()
     {
         return $this->hasMany(Pembayaran::class, 'petugas_id');
     }
-}   
+}
