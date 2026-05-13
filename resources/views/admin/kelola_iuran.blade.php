@@ -121,7 +121,7 @@
        ========================================================= */
     .card-wave-fill {
         position: relative;
-        overflow: hidden; /* Mengurung gelombang agar tidak keluar dari kotak kartu */
+        overflow: hidden; 
         background-color: #fff;
         cursor: pointer;
         transition: transform 0.3s ease, box-shadow 0.3s ease;

@@ -323,7 +323,7 @@
                         <div class="d-flex justify-content-center gap-3 mt-4">
                             <button type="submit" class="btn btn-primary shadow-sm px-4 fw-bold">Simpan</button>
                             <button type="button" class="btn btn-light border px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Batal</button>
-                        </div>
+                        </div>  
                     </div>
                 </form>
             </div>

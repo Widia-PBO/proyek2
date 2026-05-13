@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PetugasController;
+use App\Http\Controllers\PedagangController;
 
 // =============================================================
 // 1. HALAMAN LOGIN (Akses Umum)
@@ -82,11 +83,18 @@ Route::middleware(['auth:petugas'])->prefix('petugas')->group(function () {
     Route::put('/profil/update', [PetugasController::class, 'updateProfil'])->name('petugas.update_profil');
 });
 
+
 // =============================================================
-// 4. AREA PEDAGANG (Middleware: auth:pedagang)
+// AREA PEDAGANG (Middleware: auth:pedagang)
 // =============================================
 Route::middleware(['auth:pedagang'])->prefix('pedagang')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('pedagang.dashboard');
-    })->name('pedagang.dashboard');
+    Route::get('/dashboard', [PedagangController::class, 'index'])->name('pedagang.dashboard');    
+    Route::get('/pembayaran', [PedagangController::class, 'pembayaran'])->name('pedagang.pembayaran');
+    Route::post('/proses-pembayaran', [PedagangController::class, 'prosesPembayaran'])->name('pedagang.proses_pembayaran');
+    Route::get('/riwayat', [PedagangController::class, 'riwayat'])->name('pedagang.riwayat');
+    
+    // Rute Profil
+    Route::get('/profil', [PedagangController::class, 'profil'])->name('pedagang.profil');
+    Route::put('/profil/update', [PedagangController::class, 'updateProfil'])->name('pedagang.update_profil');
+    Route::put('/profil/change-password', [PedagangController::class, 'changePassword'])->name('pedagang.change_password');
 });
