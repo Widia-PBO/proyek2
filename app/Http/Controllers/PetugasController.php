@@ -59,19 +59,27 @@ return view('petugas.dashboard', compact(
         return view('petugas.penagihan', compact('petugas', 'semuaKios', 'kiosSudahBayar'));
     }
 
-    public function prosesBayar(Request $request)
+  public function prosesBayar(Request $request)
 {
     $petugas = Auth::guard('petugas')->user();
     
-    // Ambil tarif iuran terbaru dari database (default 10000 jika belum ada)
-    $tarif = \DB::table('settings')->where('key', 'tarif_iuran')->value('value') ?? 10000;
+    // 1. Cari data kios yang sedang ditagih
+    $kios = Kios::find($request->kios_id);
+    
+    if (!$kios) {
+        return redirect()->back()->with('error', 'Kios tidak ditemukan.');
+    }
+
+    // 2. Ambil tarif langsung dari kolom kios (Misal nama kolomnya: tarif atau nominal_iuran)
+    // Sesuaikan 'tarif' dengan nama kolom asli di tabel kios Anda
+    $tarif = $kios->tarif ?? 10000; 
 
     Pembayaran::create([
         'kios_id' => $request->kios_id,
         'petugas_id' => $petugas->id,
         'tanggal_bayar' => date('Y-m-d'),
-        'total_bayar' => $tarif, // Ambil dari pengaturan Admin
-        'metode_pembayaran' => 'Tunai', // Karena ditagih petugas, pasti Tunai
+        'total_bayar' => $tarif, // Sekarang sudah dinamis mengikuti tarif kios tersebut
+        'metode_pembayaran' => 'Tunai',
         'status' => 'Lunas'
     ]);
 

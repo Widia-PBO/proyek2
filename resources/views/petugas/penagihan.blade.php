@@ -28,7 +28,10 @@
                                 </div>
                             </div>
                             <div class="text-end">
-                                <div class="fw-bold text-dark mb-1">Rp10.000</div>
+                                {{-- DIPERBAIKI: Nominal dinamis mengikuti setting Admin --}}
+                                <div class="fw-bold text-dark mb-1">
+                                    Rp {{ number_format(\DB::table('settings')->where('key', 'tarif_iuran')->value('value') ?? 0, 0, ',', '.') }}
+                                </div>
                                 @if($isLunas)
                                     <span class="badge bg-success px-3 py-2">LUNAS</span>
                                 @else
@@ -71,6 +74,13 @@
                         <span class="text-muted">Status</span>
                         <span id="detStatus"></span>
                     </li>
+                    {{-- DITAMBAHKAN: Menampilkan Total Tagihan dinamis di dalam Modal --}}
+                    <li class="list-group-item d-flex justify-content-between border-0 px-0 mb-2">
+                        <span class="text-muted">Total Tagihan</span>
+                        <span class="fw-bold text-primary bg-primary-subtle px-2 py-1 rounded">
+                            Rp {{ number_format(\DB::table('settings')->where('key', 'tarif_iuran')->value('value') ?? 0, 0, ',', '.') }}
+                        </span>
+                    </li>
                 </ul>
                 <div id="containerAksi"></div>
             </div>
@@ -91,13 +101,13 @@ function showDetail(noKios, namaPedagang, namaUsaha, blok, isLunas, idKios) {
         container.innerHTML = `
             <form action="{{ url('/petugas/penagihan/batal') }}" method="POST">
                 @csrf <input type="hidden" name="kios_id" value="${idKios}">
-                <button type="submit" class="btn btn-danger w-100 fw-bold mb-2 py-2">Batalkan Pembayaran</button>
+                <button type="submit" class="btn btn-danger w-100 fw-bold mb-2 py-2" style="border-radius: 10px;">Batalkan Pembayaran</button>
             </form>`;
     } else {
         container.innerHTML = `
             <form action="{{ url('/petugas/penagihan/bayar') }}" method="POST">
                 @csrf <input type="hidden" name="kios_id" value="${idKios}">
-                <button type="submit" class="btn btn-primary w-100 fw-bold mb-2 py-2">Bayar Sekarang</button>
+                <button type="submit" class="btn btn-primary w-100 fw-bold mb-2 py-2" style="border-radius: 10px;">Bayar Sekarang</button>
             </form>`;
     }
     new bootstrap.Modal(document.getElementById('modalDetail')).show();
