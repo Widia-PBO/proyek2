@@ -9,18 +9,14 @@ class Pembayaran extends Model
 {
     use HasFactory;
 
-    // Izinkan semua kolom diisi secara massal
-    protected $guarded = ['id'];
-
-    // Relasi: Satu pembayaran ini milik satu Kios
-    public function kios()
-    {
-        return $this->belongsTo(Kios::class, 'kios_id');
-    }
-
-    // Relasi: Satu pembayaran ini dicatat oleh satu Petugas
+    // Relasi ke petugas yang menginput tagihan iuran
     public function petugas()
     {
         return $this->belongsTo(Petugas::class, 'petugas_id');
+    }
+
+    public function kios()
+    {
+        return $this->belongsTo(Kios::class, 'kios_id');
     }
 }

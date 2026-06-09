@@ -151,39 +151,55 @@
 </div>
 @endsection
 @push('scripts')
-<script>
-    const commonOptions = {
-        plugins: { legend: { display: false } },
-        scales: { 
-            y: { display: false, beginAtZero: true }, 
-            x: { grid: { display: false } } 
-        }
-    };
+    <script>
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false } 
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }, 
+                x: { 
+                    grid: { display: false } 
+                } 
+            }
+        };
 
-    new Chart(document.getElementById('chart7Hari'), {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($label_hari) !!},
-            datasets: [{
-                data: {!! json_encode($data_7hari) !!},
-                backgroundColor: '#56ADFF',
-                borderRadius: 5
-            }]
-        },
-        options: commonOptions
-    });
+        // Grafik 7 Hari Terakhir - Real-time dari Petugas
+        new Chart(document.getElementById('chart7Hari'), {
+            type: 'bar',
+            data: {
+                // Mengambil urutan label hari dinamis dari Controller
+                labels: {!! json_encode($label_hari) !!},
+                datasets: [{
+                    data: {!! json_encode($data_pemasukan) !!},
+                    backgroundColor: '#56ADFF',
+                    borderRadius: 8
+                }]
+            },
+            options: commonOptions
+        });
 
-    new Chart(document.getElementById('chart1Bulan'), {
-        type: 'bar',
-        data: {
-            labels: ['M1', 'M2', 'M3', 'M4'],
-            datasets: [{
-                data: {!! json_encode($data_bulan) !!},
-                backgroundColor: '#56ADFF',
-                borderRadius: 5
-            }]
-        },
-        options: commonOptions
-    });
-</script>
-@endpush
+        // Grafik 1 Bulan Terakhir
+        new Chart(document.getElementById('chart1Bulan'), {
+            type: 'bar',
+            data: {
+                labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+                datasets: [{
+                    data: {!! json_encode($data_bulan) !!},
+                    backgroundColor: '#4ade80', // Menggunakan warna hijau cerah kesukaan Tuan Muda
+                    borderRadius: 8
+                }]
+            },
+            options: commonOptions
+        });
+    </script>
+@endpush            

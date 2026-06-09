@@ -9,12 +9,17 @@ class Kios extends Model
 {
     use HasFactory;
 
-    // Tambahkan baris ini agar kolom bisa diupdate
+    /**
+     * Properti fillable yang sudah disinkronkan dengan database admin & pedagang.
+     * Mengubah 'nama_toko' menjadi 'nama_usaha' dan menambahkan 'nama_pedagang' 
+     * agar terhindar dari Mass Assignment Protection.
+     */
     protected $fillable = [
-        'nama_toko',
-        'jenis_usaha',
         'no_kios',
         'blok',
+        'nama_usaha',     // DIPERBAIKI: Menyesuaikan kolom asli database kelola admin
+        'nama_pedagang',  // DIPERBAIKI: Mengizinkan penyimpanan nama pemilik/pedagang kios
+        'jenis_usaha',
         'status'
     ];
 
@@ -22,4 +27,4 @@ class Kios extends Model
     {
         return $this->hasOne(Pedagang::class, 'kios_id');
     }
-}   
+}

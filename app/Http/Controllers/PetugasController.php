@@ -139,26 +139,37 @@ public function riwayatSetoran()
         ]);
     }
 
-    public function updateProfil(Request $request)
-    {
-        $user = Auth::guard('petugas')->user();
-        
-        $request->validate([
-            'nama_petugas' => 'required|string|max:255',
-            'kontak' => 'required',
-            'foto' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
-        ]);
+public function updateProfil(Request $request)
+{
+    $petugas = Auth::guard('petugas')->user();
 
-        $data = $request->only(['nama_petugas', 'kontak']);
+    $request->validate([
+        'nama_petugas'  => 'required|string|max:255',
+        'wilayah_tugas' => 'required|string|max:255',
+        'kontak'        => 'required|string|max:15',
+        'foto'          => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
-        if ($request->hasFile('foto')) {
-            if ($user->foto && \Storage::disk('public')->exists($user->foto)) {
-                \Storage::disk('public')->delete($user->foto);
-            }
-            $data['foto'] = $request->file('foto')->store('profil_petugas', 'public');
+    // Update data teks
+    $petugas->nama_petugas = $request->nama_petugas;
+    $petugas->wilayah_tugas = $request->wilayah_tugas;
+    $petugas->kontak = $request->kontak;
+
+    // Proses Foto
+    if ($request->hasFile('foto')) {
+        // Hapus foto lama
+        if ($petugas->foto && file_exists(public_path('storage/' . $petugas->foto))) {
+            @unlink(public_path('storage/' . $petugas->foto));
         }
 
-        $user->update($data);
-        return back()->with('success', 'Profil Anda berhasil diperbarui!');
+        $file = $request->file('foto');
+        $filename = time() . '_petugas_' . $petugas->username . '.' . $file->getClientOriginalExtension();
+        $file->move(public_path('storage/foto_petugas'), $filename);
+        $petugas->foto = 'foto_petugas/' . $filename;
     }
+
+    $petugas->save();
+
+    return back()->with('success', 'Profil petugas berhasil diperbarui!');
+}
 } 
